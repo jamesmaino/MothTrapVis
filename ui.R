@@ -17,7 +17,7 @@ vars1 <- c(
 )
 
 shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "MothTrapVis"), id="nav", windowTitle = "MothTrapVis",
-  tabPanel("Interactive Map",
+  tabPanel("Animation",
     div(class="outer",
 
       tags$head(
