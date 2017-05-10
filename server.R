@@ -28,7 +28,6 @@ shinyServer(function(input, output, session) {
   })
   
   ## Interactive Map ###########################################
-  animationOptions(interval = 1000, loop = FALSE, playButton = 'p')
   output$yearSlider <- renderUI({
     subct <- subset(zipdata(), format(zipdata()$yearweek, '%Y') == input$myYear)
     if(is.null(input$date)){
@@ -55,7 +54,6 @@ shinyServer(function(input, output, session) {
   weekdata<- reactive({
     start_date <- input$date[1]
     end_date <- input$date[2]
-    swd<-subset(zipdata(), yearweek >=start_date&yearweek<=end_date)
     swd%>%group_by_('id','latitude','longitude',"operator", "state", "district")%>%summarise(count=sum(count, na.rm = TRUE))
     })
   
