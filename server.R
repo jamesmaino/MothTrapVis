@@ -7,7 +7,6 @@ library(ggplot2)
 library(plyr)
 library(dplyr)
 
-
 # function used for deciding which traps have missing data for given week
 negate_match_df <- function (x, y, on = NULL){
   if (is.null(on)) {
@@ -29,6 +28,7 @@ shinyServer(function(input, output, session) {
   })
   
   ## Interactive Map ###########################################
+  animationOptions(interval = 1000, loop = FALSE, playButton = 'p')
   output$yearSlider <- renderUI({
     subct <- subset(zipdata(), format(zipdata()$yearweek, '%Y') == input$myYear)
     if(is.null(input$date)){
@@ -37,6 +37,7 @@ shinyServer(function(input, output, session) {
         myDates<-input$date
     }
     sliderInput('date', 'Map showing trap data for date range:', min=min(as.Date(subct$yearweek)), max=max(as.Date(subct$yearweek)), value = myDates, width = '100%', step = 1)
+   
   })
   
   # Create the map
@@ -112,7 +113,7 @@ shinyServer(function(input, output, session) {
       if(nrow(trap_dat)>0){
         trap_dat$yearweek<-as.Date(paste(trap_dat$yearweek,7),"%Y-w%U %u") # need to add day
         trap_dat<-trap_dat%>%group_by_('yearweek')%>%summarise(count=sum(count, na.rm = TRUE))
-        p = p + geom_bar(data=trap_dat, aes(x=yearweek, y=count, width=7), alpha = 0.5, stat="identity",fill = '#F8766D', show.legend = TRUE, position=position_dodge())
+        p = p + geom_bar(data=trap_dat, aes(x=yearweek, y=count), alpha = 0.5, stat="identity",fill = '#F8766D', show.legend = TRUE, position=position_dodge())
       }
     }
     
@@ -132,7 +133,7 @@ shinyServer(function(input, output, session) {
     if(nrow(state_dat)>0){
       p = p +
         geom_line(data=state_dat, aes(x=yearweek, y=count), show.legend = TRUE) +
-        geom_ribbon(data=state_dat,aes(x = yearweek, y=count, ymin=lwr,ymax=upr),alpha = 0.3) +
+        geom_ribbon(data=state_dat,aes(x = yearweek, ymin=lwr,ymax=upr),alpha = 0.3) +
         xlab('') +
         ylab(paste0('Mean weekly count of \n',trapNo,' traps in ',input$region, " (",format(mean(sdf$yearweek), format = '%Y'),")")) 
       #+   scale_x_date(limits = c(min(sdf$yearweek)-7, max(sdf$yearweek)+7), date_breaks = "2 week",date_labels = "%b %d")
@@ -166,15 +167,23 @@ shinyServer(function(input, output, session) {
 
   # When map is clicked, show a popup with city info
   observe({
+    input$map_shape_click$id
     leafletProxy("map") %>% clearPopups()
-    event <- input$map_shape_click
-    if (is.null(event))
+    
+    if (is.null(input$map_shape_click$id))
       return()
-    showZipcodePopup(event$id, event$lat, event$lng)
+    
     isolate({
-      
+      showZipcodePopup(input$map_shape_click$id, input$map_shape_click$lat, input$map_shape_click$lng)
       })
+    
   })
+  
+  observe({
+    input$date
+    leafletProxy("map") %>% clearPopups()
+  })
+  
   
 
 })

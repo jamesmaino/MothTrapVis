@@ -42,38 +42,18 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
                    column(1, selectInput( 'myYear','Year', selected = '2016', choices = unique(format(as.Date(cleantable$yearweek),'%Y')))),
                    column(2, selectInput("species", "Species", selected = 'punctigera', vars1)),
                    column(2, selectInput("region", "Region for graph", selected = 'all states', vars)),
-                   # fixedPanel(id = 'logo',class = "panel panel-default",
-                   #            top = 'auto', draggable = FALSE, left = 12, bottom = "50%",
-                   #            width = 'auto', height = "auto",
-
-                              # fluidRow(
                                 img(src="logo.png", height = 70),
                                 img(src="SARDI_small.png", height = 70),
                                 img(src="DAFWA_small.png",height = 70),
                                 img(src="GRDC_small.png",  height = 70),
                                 img(src="QDAF_small.png", height = 70)
-                                # )
-                   #            )
-                   
                  )
       ),
       fixedPanel(id = 'sliderPanel',class = "panel panel-default",
                  bottom = '0%', draggable = FALSE, left = '5%', right = '5%',
                  top = "auto", width = 'auto', height = "auto",
                  column(uiOutput('yearSlider'),width = 10, offset = 1)),
-      # LOGOS
-      # fixedPanel(id = 'logo',class = "panel panel-default",
-      #            top = 'auto', draggable = FALSE, left = 12, bottom = "50%",
-      #            width = 'auto', height = "auto",
-      #            fluidRow(
-      #              img(src="logo.png", width = 50, height = 50),
-      #              img(src="SARDI_small.png", height = 50),
-      #              img(src="DAFWA_small.png",height = 50),
-      #              img(src="GRDC_small.png",  height = 50),
-      #              img(src="QDAF_small.png", height = 50)
-      #              )
-      #            ),
-      # Shiny versions prior to 0.11 should use class="modal" instead.
+
       absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
         draggable = TRUE, top = '30%', left = "auto", right = 20, bottom = "auto",
         width = 330, height = "auto",
