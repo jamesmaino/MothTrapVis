@@ -29,7 +29,8 @@ shinyServer(function(input, output, session) {
   
   ## Interactive Map ###########################################
   output$yearSlider <- renderUI({
-    sliderInput('date', 'Map showing trap data for date range:', min=input$dateMin, max=input$dateMax, value = c(input$dateMin, input$dateMin+input$binSize*7), width = '100%', step = input$binSize*7,animate = animationOptions(interval = input$aniSpeed*1000/as.numeric((input$dateMax-input$dateMin)/(input$binSize*7)),loop=TRUE))
+    input$refresh
+    sliderInput('date', 'Map showing trap data for date range:', min=input$dateMin, max=input$dateMax, value = c(input$dateMin, input$dateMin+input$binSize*7), width = '100%', step = input$binSize*7,animate = animationOptions(interval = input$aniSpeed*1000/as.numeric((input$dateMax-input$dateMin)/(input$binSize*7)),loop=FALSE))
    
   })
   
@@ -69,8 +70,10 @@ shinyServer(function(input, output, session) {
         clearShapes() %>% clearMarkers() %>%
         addMarkers(missing$longitude, missing$latitude, icon = myIcon)
     }else{
-      colorData <- weekdata()[[colorBy]]
-      pal <- colorNumeric('YlOrRd', colorData)
+      colorData <- c(weekdata()[[colorBy]])
+      # browser()
+      legMax=10000
+      pal <- colorNumeric('YlOrRd', c(legMax,colorData))
       radius <- log(weekdata()[[sizeBy]]+2) / log(max(weekdata()[[sizeBy]])+2) * 30000
       leafletProxy("map", data = weekdata()) %>%
         clearShapes() %>% clearMarkers() %>%
@@ -79,7 +82,7 @@ shinyServer(function(input, output, session) {
                    fillOpacity = ifelse(weekdata()[[sizeBy]]==0,0,0.8),
                    fillColor=pal(colorData)) %>%
         addMarkers(missing$longitude, missing$latitude,icon =  myIcon) %>%
-        addLegend("bottomleft", pal=pal, values=colorData, title='Count',
+        addLegend("bottomleft", pal=pal, values=c(colorData, legMax), title='Count',
           layerId="colorLegend",opacity = 1)
       
     }

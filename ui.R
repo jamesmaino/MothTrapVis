@@ -25,25 +25,30 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
                  top = '10%', draggable = FALSE, left = '5%', right = '5%',
                  bottom = "auto", width = 'auto', height = "auto",
                  fluidRow(
-                   column(2, selectInput("species", "Species", selected = 'punctigera', vars1)),
-                   
-                   column(1,dateInput("dateMin", "Start date",as.Date('2016-01-01'))),
-                   column(1,dateInput("dateMax", "End date",as.Date('2016-12-31'))),
-                   column(1,numericInput("binSize", "bin size (weeks)",2)),
-                   column(1,numericInput("aniSpeed", "Animation speed (s)",10)),
-                                img(src="logo.png", height = 70),
-                                img(src="SARDI_small.png", height = 70),
-                                img(src="DAFWA_small.png",height = 70),
-                                img(src="GRDC_small.png",  height = 70),
-                                img(src="QDAF_small.png", height = 70)
+                   column(2, selectInput("species", "Species", selected = 'punctigera', vars1),                           dateInput("dateMin", "Start date",as.Date('2016-01-01')),
+                             dateInput("dateMax", "End date",as.Date('2016-12-31')),
+                             numericInput("binSize", "bin size (weeks)",40),
+                             numericInput("aniSpeed", "Animation speed (s)",10,))
                  )
+      ),
+      fixedPanel(id = 'images',
+                 top = '10%', draggable = TRUE, left = '50%', right = '5%',
+                 bottom = "auto", width = 'auto', height = "auto",
+                 img(src="logo.png", height = 70),
+                 img(src="SARDI_small.png", height = 70),
+                 img(src="DAFWA_small.png",height = 70),
+                 img(src="GRDC_small.png",  height = 70),
+                 img(src="QDAF_small.png", height = 70)
       ),
       fixedPanel(id = 'sliderPanel',class = "panel panel-default",
                  bottom = '0%', draggable = FALSE, left = '5%', right = '5%',
                  top = "auto", width = 'auto', height = "auto",
-                 column(uiOutput('yearSlider'),width = 10, offset = 1)),
-
-      
+                 column(uiOutput('yearSlider'),width = 10, offset = 1),
+                 column(actionButton("refresh", "", 
+                                     icon = icon("refresh"),
+                                     style="color: #fff; background-color: rgba(255,255,255,0); border-color: rgba(255,255,255,0)"
+                 ), width =1, offset =10, align = 'right')
+                 ),
       
       tags$div(id="cite",'cesar'
       )
