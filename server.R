@@ -18,12 +18,24 @@ negate_match_df <- function (x, y, on = NULL){
 
 shinyServer(function(input, output, session) {
   zipdata<- reactive({
+    if (!is.null(input$map_bounds)){
+      bounds <- input$map_bounds
+      latRng <- range(bounds$north, bounds$south)
+      lngRng <- range(bounds$east, bounds$west)
+    }else{
+      latRng <- c(-90,90)
+      lngRng  <- c(-180,180)
+    }
     if(input$species=='punctigera'){
       return(subset(cleantable,
-                    as.Date(yearweek) >= input$dateMin&as.Date(yearweek) <= input$dateMax))  
+                    as.Date(date) >= input$dateMin&as.Date(date) <= input$dateMax &
+                      latitude >= latRng[1] & latitude <= latRng[2] &
+                      longitude >= lngRng[1] & longitude <= lngRng[2]))  
     }else{
       return(subset(cleantable1,
-                    as.Date(yearweek) >= input$dateMin&as.Date(yearweek) <= input$dateMax))
+                    as.Date(date) >= input$dateMin&as.Date(date) <= input$dateMax&
+                      latitude >= latRng[1] & latitude <= latRng[2] &
+                      longitude >= lngRng[1] & longitude <= lngRng[2]))
     }
   })
   
@@ -38,18 +50,27 @@ shinyServer(function(input, output, session) {
   output$map <- renderLeaflet({
     leaflet() %>%
       addTiles(
-        urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+        urlTemplate = "//{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?",
         attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
       ) %>%
       setView(lng = 142, lat = -35, zoom = 6)
   })
-
-
+  # set max of the legend for animation (so doesn't jump around)
+  legendMax<-reactive({
+    df <- subset(zipdata(), date >=input$dateMin&date<=input$dateMax )
+    df$variablebin<-as.Date(NA, origin = "1970-1-1")
+    datebins<-seq(input$dateMin,input$dateMax, by = 7*ifelse(is.na(input$binSize),1,input$binSize))
+    for(datebin in datebins){
+      df$variablebin[which(0<=(df$date-datebin)&(df$date-datebin)<=7*input$binSize)]<-as.Date(datebin, origin = '1970-1-1')
+    }
+    count<-df%>%group_by_('id','variablebin')%>%summarise(count=sum(count, na.rm = TRUE))
+    return(max(count$count))
+  })
   # set up trap data for binned time
   weekdata<- reactive({
     start_date <- input$date[1]
     end_date <- input$date[2]
-    swd<-subset(zipdata(), yearweek >=start_date&yearweek<=end_date)
+    swd<-subset(zipdata(), date >=start_date&date<=end_date)
     swd%>%group_by_('id','latitude','longitude',"operator", "state", "district")%>%summarise(count=sum(count, na.rm = TRUE))
     })
   
@@ -69,24 +90,25 @@ shinyServer(function(input, output, session) {
       leafletProxy("map", data = weekdata()) %>%
         clearShapes() %>% clearMarkers() %>%
         addMarkers(missing$longitude, missing$latitude, icon = myIcon)
+        
     }else{
       colorData <- c(weekdata()[[colorBy]])
-      # browser()
-      legMax=10000
+      legMax<-legendMax()
       pal <- colorNumeric('YlOrRd', c(legMax,colorData))
-      radius <- log(weekdata()[[sizeBy]]+2) / log(max(weekdata()[[sizeBy]])+2) * 30000
+      radius <- 6^3/input$map_zoom^3*log(weekdata()[[sizeBy]]+2) / log(max(legMax)+2) * 30000
       leafletProxy("map", data = weekdata()) %>%
         clearShapes() %>% clearMarkers() %>%
         addCircles(~longitude, ~latitude, layerId=~id, radius = radius, #radius=6000,
                    stroke = TRUE, color = "black", weight = 1,
-                   fillOpacity = ifelse(weekdata()[[sizeBy]]==0,0,0.8),
+                   fillOpacity = ifelse(weekdata()[[sizeBy]]==0,0,1),
                    fillColor=pal(colorData)) %>%
         addMarkers(missing$longitude, missing$latitude,icon =  myIcon) %>%
-        addLegend("bottomleft", pal=pal, values=c(colorData, legMax), title='Count',
+        addLegend("right", pal=pal, values=c(colorData, legMax), title='Count',
           layerId="colorLegend",opacity = 1)
       
     }
   })
-
+  
+  
 
 })

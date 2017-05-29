@@ -56,7 +56,7 @@ for (j in 1:ncol(d)){
 }
 df$Latitude<-as.numeric(df$Latitude)
 df$Longitude<-as.numeric(df$Longitude)
-df$YearWeek<-df$Date
+df$YearWeek<-format(df$Date, '%Y-%W')
 
 names(df)<- tolower(names(df))
 
@@ -115,7 +115,7 @@ for (j in 1:ncol(d)){
 }
 df$Latitude<-as.numeric(df$Latitude)
 df$Longitude<-as.numeric(df$Longitude)
-df$YearWeek<-df$Date
+df$YearWeek<-format(df$Date, '%Y-%W')
 
 names(df)<- tolower(names(df))
 

@@ -22,13 +22,13 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
       includeCSS("styles.css"),
       leafletOutput("map", width="100%", height="100%"),
       fixedPanel(id = 'selections',
-                 top = '10%', draggable = FALSE, left = '5%', right = '5%',
+                 top = '10%', draggable = FALSE, left = '5%', right = '75%',
                  bottom = "auto", width = 'auto', height = "auto",
                  fluidRow(
-                   column(2, selectInput("species", "Species", selected = 'punctigera', vars1),                           dateInput("dateMin", "Start date",as.Date('2016-01-01')),
+                   column(12, selectInput("species", "Species", selected = 'punctigera', vars1),                           dateInput("dateMin", "Start date",as.Date('2016-01-01')),
                              dateInput("dateMax", "End date",as.Date('2016-12-31')),
-                             numericInput("binSize", "bin size (weeks)",40),
-                             numericInput("aniSpeed", "Animation speed (s)",10,))
+                             numericInput("binSize", "bin size (weeks)",4),
+                             numericInput("aniSpeed", "Animation speed (s)",10))
                  )
       ),
       fixedPanel(id = 'images',
