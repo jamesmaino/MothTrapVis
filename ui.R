@@ -26,10 +26,12 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
                  bottom = "auto", width = 'auto', height = "auto",
                  fluidRow(
                    column(12, selectInput("species", "Species", selected = 'punctigera', vars1),                           dateInput("dateMin", "Start date",as.Date('2016-01-01')),
-                             dateInput("dateMax", "End date",as.Date('2016-12-31')),
                              numericInput("binSize", "bin size (weeks)",4),
-                             numericInput("aniSpeed", "Animation speed (s)",10))
-                 )
+                             numericInput("timeSpan", "time span (weeks)",40),
+                             span(textOutput('durationWarning'),style="color:red"),
+                             numericInput("aniSpeed", "Animation speed (s)",10)
+                          )
+                          )
       ),
       fixedPanel(id = 'images',
                  top = '10%', draggable = TRUE, left = '50%', right = '5%',
