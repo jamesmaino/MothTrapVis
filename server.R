@@ -30,12 +30,16 @@ shinyServer(function(input, output, session) {
   animationOptions(interval = 1000, loop = FALSE, playButton = 'p')
   output$yearSlider <- renderUI({
     subct <- subset(zipdata(), format(zipdata()$yearweek, '%Y') == input$myYear)
-    if(is.null(input$date)){
-      myDates <- c(as.Date(paste0(input$myYear,'-08-20')),as.Date(paste0(input$myYear,'-08-27')))
-      }else{
-        myDates<-input$date
-    }
-    sliderInput('date', 'Map showing trap data for date range:', min=min(as.Date(subct$yearweek)), max=max(as.Date(subct$yearweek)), value = myDates, width = '100%', step = 1)
+    # if(is.null(input$date)){
+    #   
+    #   myDates <- c(as.Date(paste0(input$myYear,'-08-20')),as.Date(paste0(input$myYear,'-08-27')))
+    #   }else{
+    #     myDates<-input$date
+    #   }
+    myMin<-min(as.Date(subct$yearweek))
+    myMax<-max(as.Date(subct$yearweek))
+    mySpan<-myMax-myMin
+    sliderInput('date', 'Map showing trap data for date range:', min=myMin, max=myMax, value = c(myMin+mySpan/4,myMax-mySpan/4), width = '100%', step = 1)
    
   })
   
@@ -51,6 +55,8 @@ shinyServer(function(input, output, session) {
 
 
   # set up trap data for binned time
+
+  
   weekdata<- reactive({
     start_date <- input$date[1]
     end_date <- input$date[2]
@@ -191,11 +197,9 @@ shinyServer(function(input, output, session) {
   ## Animation Map ###########################################
   zipdata2<- reactive({
     if(input$species=='punctigera'){
-      return(subset(cleantable,
-                    as.numeric(format(as.Date(yearweek), '%Y')) == input$myYear))  
+      return(cleantable)  
     }else{
-      return(subset(cleantable1,
-                    as.numeric(format(as.Date(yearweek), '%Y')) == input$myYear))
+      return(cleantable1)
     }
   })
   
@@ -231,15 +235,19 @@ shinyServer(function(input, output, session) {
                  longitude<input$map2_bounds$east&
                  longitude>input$map2_bounds$west
                  )
-    df$variablebin<-NA
-    datebins<-seq(input$dateMin2,as.Date(input$dateMin2+as.numeric(input$timeSpan2)*7, origin = '1970-01-01'), by = 7*ifelse(is.na(as.numeric(input$binSize2)),1,as.numeric(input$binSize2)))
-    count = 1
-    for(datebin in rev(datebins)){
-      df$variablebin[as.numeric(df$date)<datebin]<-count
-      count = count+1
+    if(nrow(df)>1){
+      df$variablebin<-NA
+      datebins<-seq(input$dateMin2,as.Date(input$dateMin2+as.numeric(input$timeSpan2)*7, origin = '1970-01-01'), by = 7*ifelse(is.na(as.numeric(input$binSize2)),1,as.numeric(input$binSize2)))
+      count = 1
+      for(datebin in rev(datebins)){
+        df$variablebin[as.numeric(df$date)<datebin]<-count
+        count = count+1
+      }
+      count<-df%>%group_by_('id','variablebin')%>%summarise(count=sum(count, na.rm = TRUE))
+      return(max(count$count))
+    }else{
+      return(0)  
     }
-    count<-df%>%group_by_('id','variablebin')%>%summarise(count=sum(count, na.rm = TRUE))
-    return(max(count$count))
   })
   # set up trap data for binned time
   weekdata2<- reactive({
@@ -268,7 +276,10 @@ shinyServer(function(input, output, session) {
   observe({
     if (nrow(weekdata2())==0){
       rowsToFind <- weekdata2()[,c('longitude','latitude')]
-      missing<-negate_match_df(unique(zipdata2()[,c('longitude','latitude')]), rowsToFind)
+      yearLonLat<-zipdata2()[,c('yearweek','longitude','latitude')]
+      yearLonLat$year<-format(yearLonLat$yearweek, '%Y')
+      missing<-negate_match_df(unique(yearLonLat[,c('year','longitude','latitude')]), rowsToFind)
+      missing<-missing[missing$year==format(input$dateMin2,'%Y'),]
       leafletProxy("map2", data = weekdata2()) %>%
         clearShapes() %>% clearMarkers() %>%
         addMarkers(missing$longitude, missing$latitude, icon = myIcon)
@@ -290,7 +301,10 @@ shinyServer(function(input, output, session) {
                   layerId="colorLegend",opacity = 1)
       if(input$showMissing){
         rowsToFind <- weekdata2()[,c('longitude','latitude')]
-        missing<-negate_match_df(unique(zipdata2()[,c('longitude','latitude')]), rowsToFind)
+        yearLonLat<-zipdata2()[,c('yearweek','longitude','latitude')]
+        yearLonLat$year<-format(yearLonLat$yearweek, '%Y')
+        missing<-negate_match_df(unique(yearLonLat[,c('year','longitude','latitude')]), rowsToFind)
+        missing<-missing[missing$year==format(input$dateMin2,'%Y'),]
         addMarkers(leafletProxy("map2", data = weekdata2()) ,missing$longitude, missing$latitude,icon =  myIcon) 
       }
       # if(input$date2[1]>'2016-09-20')browser()
