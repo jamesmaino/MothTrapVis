@@ -3,6 +3,7 @@ library(leaflet)
 
 # Choices for drop-downs
 vars <- c(
+  "Hide trend plot" = "hidePlot",
   "Victoria" = "VIC",
   "South Australia" = "SA",
   "New South Wales" = "NSW",
@@ -42,38 +43,36 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
                  fluidRow(
                    column(1, selectInput( 'myYear','Year', selected = '2016', choices = unique(format(as.Date(cleantable$yearweek),'%Y')))),
                    column(2, selectInput("species", "Species", selected = 'punctigera', vars1)),
-                   column(2, selectInput("region", "Region for graph", selected = 'all states', vars)),
-                                img(src="logo.png", height = 70),
-                                img(src="SARDI_small.png", height = 70),
-                                img(src="DAFWA_small.png",height = 70),
-                                img(src="GRDC_small.png",  height = 70),
-                                img(src="QDAF_small.png", height = 70)
+                   column(2, selectInput("region", "Region for graph", selected = 'hidePlot', c(vars))),
+                   column(4),
+                   column(2,
+                          absolutePanel(draggable = TRUE, top = '30%', left = "auto", 
+                                        right = 20, bottom = "auto",
+                                        width = 330, height = "auto",
+                                        conditionalPanel("input.region != 'hidePlot'",
+                                             id = "controls", class = "panel panel-default",
+                                             plotOutput("timeMoths", height = 300),
+                                             helpText("red bar graph shows data at selected trap\n
+                      grey bars show standard error"),
+                                             helpText(   a("Click Here for raw data", 
+                                                           href="https://docs.google.com/spreadsheets/d/16tksOn7SAv4ezJCX_z4no4MpJDtua6pGqVPjfg57OZ8/edit#gid=0", target="_blank"  )
+                                             )
+                                             
+                            )
+                          )
+                   )#,
+                                # img(src="logo.png", height = 70),
+                                # img(src="SARDI_small.png", height = 70),
+                                # img(src="DAFWA_small.png",height = 70),
+                                # img(src="GRDC_small.png",  height = 70),
+                                # img(src="QDAF_small.png", height = 70)
                  )
       ),
       fixedPanel(id = 'sliderPanel',class = "panel panel-default",
                  bottom = '0%', draggable = FALSE, left = '5%', right = '5%',
                  top = "auto", width = 'auto', height = "auto",
                  column(uiOutput('yearSlider'),width = 10, offset = 1)),
-
-      absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-        draggable = TRUE, top = '30%', left = "auto", right = 20, bottom = "auto",
-        width = 330, height = "auto",
-        br(),
-        tags$head(tags$style(
-          HTML('
-               #sliderPanel {background-color: rgba(255,255,255,0);
-                             outline: none;
-                             border: 0;
-               #} 
-               #yearSlider {outline: none}')
-          )),
-        plotOutput("timeMoths", height = 300),
-        helpText("red bar graph shows data at selected trap\n
-                  grey bars show standard error"),
-        helpText(   a("Click Here for raw data", 
-                      href="https://docs.google.com/spreadsheets/d/16tksOn7SAv4ezJCX_z4no4MpJDtua6pGqVPjfg57OZ8/edit#gid=0", target="_blank"  )
-          )
-      ),
+      
       
       tags$div(id="cite",'cesar'
       )
@@ -89,12 +88,13 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
                           bottom = "auto", width = 'auto', height = "auto",
                           fluidRow(
                             column(12,
-                                   selectInput("species2", "Species", selected = 'punctigera', vars1),
-                                   dateInput("dateMin2", "Start date",as.Date('2016-06-01')),
-                                   selectInput("binSize2", "Bin size (weeks)", 1:10, 4),
-                                   selectInput("timeSpan2", "Time span (weeks)",1:52, 24),
-                                   span(textOutput('durationWarning2'),style="color:red"),
-                                   selectInput("aniSpeed2", "Animation speed (s)", 1:10, 4)
+                                   selectInput("species2", "Species", selected = 'punctigera', vars1,width = '50%'),
+                                   dateInput("dateMin2", "Start date",as.Date('2016-06-01'),width = '50%'),
+                                   selectInput("binSize2", "Bin size (weeks)", 1:10, 4,width = '50%'),
+                                   selectInput("timeSpan2", "Time span (weeks)",1:52, 24,width = '50%'),
+                                   span(textOutput('durationWarning2'),style="color:red",width = '50%'),
+                                   selectInput("aniSpeed2", "Animation speed (s)", 1:10, 4,width = '50%'),
+                                   checkboxInput("showMissing","Show 'no data' as x symbols", TRUE,width = '50%')
                             )
                           )
                ),

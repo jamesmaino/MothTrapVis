@@ -266,9 +266,9 @@ shinyServer(function(input, output, session) {
     iconWidth = 10, iconHeight = 10)
 
   observe({
-    rowsToFind <- weekdata2()[,c('longitude','latitude')]
-    missing<-negate_match_df(unique(zipdata2()[,c('longitude','latitude')]), rowsToFind)
     if (nrow(weekdata2())==0){
+      rowsToFind <- weekdata2()[,c('longitude','latitude')]
+      missing<-negate_match_df(unique(zipdata2()[,c('longitude','latitude')]), rowsToFind)
       leafletProxy("map2", data = weekdata2()) %>%
         clearShapes() %>% clearMarkers() %>%
         addMarkers(missing$longitude, missing$latitude, icon = myIcon)
@@ -285,10 +285,14 @@ shinyServer(function(input, output, session) {
                    stroke = TRUE, color = "black", weight = 1,
                    fillOpacity = ifelse(weekdata2()[[sizeBy]]==0,0,1),
                    fillColor=pal(colorData)) %>%
-        addMarkers(missing$longitude, missing$latitude,icon =  myIcon) %>%
         # need to add extra values to legend or it 
         addLegend("topright", pal=pal, values=c(0, colorData, legMax), title=paste('Count <br>', input$date2[1],'-<br>',input$date2[2]),
                   layerId="colorLegend",opacity = 1)
+      if(input$showMissing){
+        rowsToFind <- weekdata2()[,c('longitude','latitude')]
+        missing<-negate_match_df(unique(zipdata2()[,c('longitude','latitude')]), rowsToFind)
+        addMarkers(leafletProxy("map2", data = weekdata2()) ,missing$longitude, missing$latitude,icon =  myIcon) 
+      }
       # if(input$date2[1]>'2016-09-20')browser()
 
     }
