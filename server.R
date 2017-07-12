@@ -201,11 +201,12 @@ shinyServer(function(input, output, session) {
   
   output$yearSlider2 <- renderUI({
     input$refresh
-    sliderInput('date2', 'Map showing trap data for date range:', min=input$dateMin2, max=input$dateMin2+input$timeSpan2*7, value = c(input$dateMin2, input$dateMin2+input$binSize2*7), width = '100%', step = input$binSize2*7,animate = animationOptions(interval = input$aniSpeed2*1000/as.numeric((input$timeSpan2)/(input$binSize2)),loop=TRUE))
+    sliderInput('date2', 'Map showing trap data for date range:', min=input$dateMin2, max=input$dateMin2+as.numeric(input$timeSpan2)*7, value = c(input$dateMin2, input$dateMin2+as.numeric(input$binSize2)*7), width = '100%', step = as.numeric(input$binSize2)*7,animate = animationOptions(interval = as.numeric(input$aniSpeed2)*1000/(as.numeric(input$timeSpan2)/as.numeric(input$binSize2)),loop=TRUE))
 
   })
+  
   output$durationWarning2<-renderText({
-    if(input$timeSpan2%%input$binSize2!=0){
+    if(as.numeric(input$timeSpan2)%%as.numeric(input$binSize2)!=0){
       return('warning: time span not divisible by bin size')
     }else{
       return(NULL)
@@ -224,11 +225,18 @@ shinyServer(function(input, output, session) {
   legendMax<-reactive({
     # browser()
     df <- subset(zipdata2(), date >=input$dateMin2&
-                   date<=as.Date(input$dateMin2+input$timeSpan2*7, origin = '1970-01-01' ))
-    df$variablebin<-as.Date(NA, origin = "1970-1-1")
-    datebins<-seq(input$dateMin2,as.Date(input$dateMin2+input$timeSpan2*7, origin = '1970-01-01'), by = 7*ifelse(is.na(input$binSize2),1,input$binSize2))
-    for(datebin in datebins){
-      df$variablebin[which(0<=(df$date-datebin)&(df$date-datebin)<=7*input$binSize2)]<-as.Date(datebin, origin = '1970-1-1')
+                 date<=as.Date(input$dateMin2+as.numeric(input$timeSpan2)*7, origin = '1970-01-01' )&
+                 latitude<input$map2_bounds$north&
+                 latitude>input$map2_bounds$south&
+                 longitude<input$map2_bounds$east&
+                 longitude>input$map2_bounds$west
+                 )
+    df$variablebin<-NA
+    datebins<-seq(input$dateMin2,as.Date(input$dateMin2+as.numeric(input$timeSpan2)*7, origin = '1970-01-01'), by = 7*ifelse(is.na(as.numeric(input$binSize2)),1,as.numeric(input$binSize2)))
+    count = 1
+    for(datebin in rev(datebins)){
+      df$variablebin[as.numeric(df$date)<datebin]<-count
+      count = count+1
     }
     count<-df%>%group_by_('id','variablebin')%>%summarise(count=sum(count, na.rm = TRUE))
     return(max(count$count))
@@ -237,7 +245,14 @@ shinyServer(function(input, output, session) {
   weekdata2<- reactive({
     start_date <- input$date2[1]
     end_date <- input$date2[2]
-    swd<-subset(zipdata2(), date >=start_date&date<=end_date)
+    swd<-subset(zipdata2(), 
+                date >=start_date&
+                date<=end_date&
+                latitude<input$map2_bounds$north&
+                latitude>input$map2_bounds$south&
+                longitude<input$map2_bounds$east&
+                longitude>input$map2_bounds$west  
+                )
     swd%>%group_by_('id','latitude','longitude',"operator", "state", "district")%>%summarise(count=sum(count, na.rm = TRUE))
   })
 
@@ -261,7 +276,7 @@ shinyServer(function(input, output, session) {
     }else{
       colorData <- c(weekdata2()[[colorBy]])
       legMax<-legendMax()
-      pal <- colorNumeric('YlOrRd', c(legMax,colorData))
+      pal <- colorNumeric('YlOrRd', c(0, colorData,legMax))
       radius <- 6^3/input$map2_zoom^3*log(weekdata2()[[sizeBy]]+2) / log(max(legMax)+2) * 30000
       # browser()
       leafletProxy("map2", data = weekdata2()) %>%
@@ -271,8 +286,10 @@ shinyServer(function(input, output, session) {
                    fillOpacity = ifelse(weekdata2()[[sizeBy]]==0,0,1),
                    fillColor=pal(colorData)) %>%
         addMarkers(missing$longitude, missing$latitude,icon =  myIcon) %>%
-        addLegend("topright", pal=pal, values=c(colorData, legMax), title='Count',
+        # need to add extra values to legend or it 
+        addLegend("topright", pal=pal, values=c(0, colorData, legMax), title=paste('Count <br>', input$date2[1],'-<br>',input$date2[2]),
                   layerId="colorLegend",opacity = 1)
+      # if(input$date2[1]>'2016-09-20')browser()
 
     }
   })

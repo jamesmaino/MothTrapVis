@@ -23,8 +23,8 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
 
       tags$head(
         # Include our custom CSS
-        includeCSS("styles.css"),
-        includeScript("gomap.js")
+        includeCSS("styles.css")
+        # includeScript("gomap.js")
       ),
       leafletOutput("map", width="100%", height="100%"),
       tags$style(type='text/css', ".info legend leaflet-control {  }"), 
@@ -91,10 +91,10 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
                             column(12,
                                    selectInput("species2", "Species", selected = 'punctigera', vars1),
                                    dateInput("dateMin2", "Start date",as.Date('2016-06-01')),
-                                   numericInput("binSize2", "bin size (weeks)",4),
-                                   numericInput("timeSpan2", "time span (weeks)",24),
+                                   selectInput("binSize2", "Bin size (weeks)", 1:10, 4),
+                                   selectInput("timeSpan2", "Time span (weeks)",1:52, 24),
                                    span(textOutput('durationWarning2'),style="color:red"),
-                                   numericInput("aniSpeed2", "Animation speed (s)",10)
+                                   selectInput("aniSpeed2", "Animation speed (s)", 1:10, 4)
                             )
                           )
                ),
