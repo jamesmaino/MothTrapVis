@@ -21,27 +21,17 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
 #### interaction panel ####
   tabPanel("Interactive map",
     div(class="outer",
-
       tags$head(
         # Include our custom CSS
         includeCSS("styles.css")
         # includeScript("gomap.js")
       ),
       leafletOutput("map", width="100%", height="100%"),
-      tags$style(type='text/css', ".info legend leaflet-control {  }"), 
-      tags$style(type='text/css', ".irs-grid-text { font-size: 10pt; 
-                                                    color:rgba(255,255,255,0);}"), 
-      tags$style(type='text/css', ".irs-min { font-size: 14pt; }"),
-      tags$style(type='text/css', ".irs-max { font-size: 14pt; }"),
-      tags$style(type='text/css', ".irs-single { font-size: 14pt; }"), 
-      tags$style(type='text/css', ".irs-from { font-size: 14pt; }"), 
-      tags$style(type='text/css', ".irs-to { font-size: 14pt; }"), 
-      tags$style(type='text/css', "label.control-label { font-size: 14pt; }"),
       fixedPanel(id = 'selections',
                  top = '10%', draggable = FALSE, left = '5%', right = '5%',
                  bottom = "auto", width = 'auto', height = "auto",
                  fluidRow(
-                   column(1, selectInput( 'myYear','Year', selected = '2016', choices = unique(format(as.Date(cleantable$yearweek),'%Y')))),
+                   column(1, selectInput( 'myYear','Year', selected = '2017', choices = unique(format(as.Date(cleantable$yearweek),'%Y')))),
                    column(2, selectInput("species", "Species", selected = 'punctigera', vars1)),
                    column(2, selectInput("region", "Region for graph", selected = 'hidePlot', c(vars))),
                    column(4),
@@ -89,7 +79,7 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
                           fluidRow(
                             column(12,
                                    selectInput("species2", "Species", selected = 'punctigera', vars1,width = '50%'),
-                                   dateInput("dateMin2", "Start date",as.Date('2016-06-01'),width = '50%'),
+                                   dateInput("dateMin2", "Start date",as.Date('2017-06-01'),width = '50%'),
                                    selectInput("binSize2", "Bin size (weeks)", 1:10, 4,width = '50%'),
                                    selectInput("timeSpan2", "Time span (weeks)",1:52, 24,width = '50%'),
                                    span(textOutput('durationWarning2'),style="color:red",width = '50%'),

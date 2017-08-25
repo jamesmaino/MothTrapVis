@@ -37,9 +37,10 @@ shinyServer(function(input, output, session) {
     #     myDates<-input$date
     #   }
     myMin<-min(as.Date(subct$yearweek))
-    myMax<-max(as.Date(subct$yearweek))
+    myMax<-max(as.Date(subct$yearweek))+ 7 
+    myMax<- myMax - (as.numeric(myMax)-as.numeric(myMin))%%7 # substract remainder to ensure max is divisible by 7
     mySpan<-myMax-myMin
-    sliderInput('date', 'Map showing trap data for date range:', min=myMin, max=myMax, value = c(myMin+mySpan/4,myMax-mySpan/4), width = '100%', step = 1)
+    sliderInput('date', 'Map showing trap data for date range:',min=myMin, max=myMax, value = c(myMin,myMin+7), width = '100%', step = 7)
    
   })
   
@@ -47,8 +48,8 @@ shinyServer(function(input, output, session) {
   output$map <- renderLeaflet({
     leaflet() %>%
       addTiles(
-        urlTemplate = "//{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?",
-        attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+        urlTemplate = "//{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=b44e15e05f4d4aab955704c3e6f57f2f",
+        attribution = 'Maps <a href="http://www.thunderforest.com/">© Thunderforest</a>, Data <a href="http://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> '
       ) %>%
       setView(lng = 142, lat = -35, zoom = 6)
   })
@@ -61,7 +62,7 @@ shinyServer(function(input, output, session) {
     start_date <- input$date[1]
     end_date <- input$date[2]
     swd<-subset(zipdata(), yearweek >=start_date&yearweek<=end_date)
-    swd%>%group_by_('id','latitude','longitude',"operator", "state", "district")%>%summarise(count=sum(count, na.rm = TRUE))
+    swd%>%group_by_('id','latitude','longitude',"operator", "state", "location")%>%summarise(count=sum(count, na.rm = TRUE))
     })
   
   # This observer is responsible for maintaining the circles and legend,
@@ -72,6 +73,9 @@ shinyServer(function(input, output, session) {
   myIcon =  makeIcon(
     iconUrl = "http://cdn1.iconfinder.com/data/icons/aye-ayecons/32/04-mark-512.png",
     iconWidth = 10, iconHeight = 10)
+  myMoth =  makeIcon(
+    iconUrl = "no_moth.png",
+    iconWidth = 30, iconHeight = 30)
   
   observe({
     rowsToFind <- weekdata()[,c('longitude','latitude')]
@@ -82,7 +86,10 @@ shinyServer(function(input, output, session) {
         addMarkers(missing$longitude, missing$latitude, popup = 'No data at selected week',icon = myIcon)
     }else{
       colorData <- weekdata()[[colorBy]]
-      pal <- colorNumeric('YlOrRd', colorData)
+      zeros=subset( weekdata(), count ==0)
+      legMax<-legendMax()
+      palette_rev <- rev(brewer.pal(11, "RdYlGn"))
+      pal <- colorNumeric(palette = palette_rev,  c(0, colorData, legMax))
       radius <- log(weekdata()[[sizeBy]]+2) / log(max(weekdata()[[sizeBy]])+2) * 30000
       leafletProxy("map", data = weekdata()) %>%
         clearShapes() %>% clearMarkers() %>%
@@ -91,6 +98,7 @@ shinyServer(function(input, output, session) {
                    fillOpacity = ifelse(weekdata()[[sizeBy]]==0,0,0.8),
                    fillColor=pal(colorData)) %>%
         addMarkers(missing$longitude, missing$latitude, popup = 'No data for selected date range',icon =  myIcon) %>%
+        addMarkers(zeros$longitude, zeros$latitude, popup = 'No moths in trap',icon =  myMoth) %>%
         addLegend("bottomleft", pal=pal, values=colorData, title='Count',
           layerId="colorLegend",opacity = 1)
       
@@ -158,7 +166,7 @@ shinyServer(function(input, output, session) {
     content <- as.character(tagList(
       # tags$h4("Count:", as.integer(selectedZip$count)),
       tags$strong(HTML(sprintf("%s, %s",
-        selectedZip$district, selectedZip$state
+        selectedZip$location, selectedZip$state
       ))), tags$br(),
       sprintf("Trap operator: %s", selectedZip$operator),tags$br(),
       sprintf("Count: %d", as.integer(selectedZip$count)),tags$br()
@@ -220,8 +228,8 @@ shinyServer(function(input, output, session) {
   output$map2 <- renderLeaflet({
     leaflet() %>%
       addTiles(
-        urlTemplate = "//{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?",
-        attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
+        urlTemplate = "//{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=b44e15e05f4d4aab955704c3e6f57f2f",
+        attribution = 'Maps <a href="http://www.thunderforest.com/">© Thunderforest</a>, Data <a href="http://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> '
       ) %>%
       setView(lng = 142, lat = -35, zoom = 6)
   })
@@ -261,7 +269,7 @@ shinyServer(function(input, output, session) {
                 longitude<input$map2_bounds$east&
                 longitude>input$map2_bounds$west  
                 )
-    swd%>%group_by_('id','latitude','longitude',"operator", "state", "district")%>%summarise(count=sum(count, na.rm = TRUE))
+    swd%>%group_by_('id','latitude','longitude',"operator", "state", "location")%>%summarise(count=sum(count, na.rm = TRUE))
   })
 
   # This observer is responsible for maintaining the circles and legend,
@@ -269,10 +277,6 @@ shinyServer(function(input, output, session) {
 
   colorBy <- 'count'
   sizeBy <-  'count'
-  myIcon =  makeIcon(
-    iconUrl = "http://cdn1.iconfinder.com/data/icons/aye-ayecons/32/04-mark-512.png",
-    iconWidth = 10, iconHeight = 10)
-
   observe({
     if (nrow(weekdata2())==0){
       rowsToFind <- weekdata2()[,c('longitude','latitude')]
@@ -281,13 +285,24 @@ shinyServer(function(input, output, session) {
       missing<-negate_match_df(unique(yearLonLat[,c('year','longitude','latitude')]), rowsToFind)
       missing<-missing[missing$year==format(input$dateMin2,'%Y'),]
       leafletProxy("map2", data = weekdata2()) %>%
-        clearShapes() %>% clearMarkers() %>%
-        addMarkers(missing$longitude, missing$latitude, icon = myIcon)
+        clearShapes() %>% clearMarkers()  %>%
+        clearControls()
+      
+      if(input$showMissing){
+        rowsToFind <- weekdata2()[,c('longitude','latitude')]
+        yearLonLat<-zipdata2()[,c('yearweek','longitude','latitude')]
+        yearLonLat$year<-format(yearLonLat$yearweek, '%Y')
+        missing<-negate_match_df(unique(yearLonLat[,c('year','longitude','latitude')]), rowsToFind)
+        missing<-missing[missing$year==format(input$dateMin2,'%Y'),]
+        addMarkers(leafletProxy("map2", data = weekdata2()) ,missing$longitude, missing$latitude,icon =  myIcon) 
+      }
 
     }else{
       colorData <- c(weekdata2()[[colorBy]])
+      zeros=subset(weekdata2(), count ==0)
       legMax<-legendMax()
-      pal <- colorNumeric('YlOrRd', c(0, colorData,legMax))
+      palette_rev <- rev(brewer.pal(11, "RdYlGn"))
+      pal <- colorNumeric(palette = palette_rev, c(0, colorData, legMax))
       radius <- 6^3/input$map2_zoom^3*log(weekdata2()[[sizeBy]]+2) / log(max(legMax)+2) * 30000
       # browser()
       leafletProxy("map2", data = weekdata2()) %>%
@@ -296,8 +311,11 @@ shinyServer(function(input, output, session) {
                    stroke = TRUE, color = "black", weight = 1,
                    fillOpacity = ifelse(weekdata2()[[sizeBy]]==0,0,1),
                    fillColor=pal(colorData)) %>%
+        addMarkers(zeros$longitude, zeros$latitude,icon =  myMoth) %>%
         # need to add extra values to legend or it 
-        addLegend("topright", pal=pal, values=c(0, colorData, legMax), title=paste('Count <br>', input$date2[1],'-<br>',input$date2[2]),
+        addLegend("topright", pal=pal, values=c(0, colorData, legMax), title=paste('Count <br>', 
+                                                                                   format(as.Date(input$date2[1]), format = '%d %b'),'-<br>',
+                                                                                   format(as.Date(input$date2[2]),format = '%d %b')),
                   layerId="colorLegend",opacity = 1)
       if(input$showMissing){
         rowsToFind <- weekdata2()[,c('longitude','latitude')]
@@ -305,7 +323,7 @@ shinyServer(function(input, output, session) {
         yearLonLat$year<-format(yearLonLat$yearweek, '%Y')
         missing<-negate_match_df(unique(yearLonLat[,c('year','longitude','latitude')]), rowsToFind)
         missing<-missing[missing$year==format(input$dateMin2,'%Y'),]
-        addMarkers(leafletProxy("map2", data = weekdata2()) ,missing$longitude, missing$latitude,icon =  myIcon) 
+        addMarkers(leafletProxy("map2", data = weekdata2()) ,missing$longitude, missing$latitude,icon =  myIcon)
       }
       # if(input$date2[1]>'2016-09-20')browser()
 
