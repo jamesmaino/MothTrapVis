@@ -5,12 +5,18 @@ require(RCurl)
 # load data through dropbox
 # d2<-read.csv(url('https://www.dropbox.com/s/9xf62j35vja2n0h/Budworm%20traps%202015%20with%20GPSgoogle.csv?raw=1'), header = FALSE, stringsAsFactors = FALSE)
 
+# load settings for WA
+myCsv <- getURL("https://docs.google.com/spreadsheets/d/e/2PACX-1vTP_GalHvmk6J0MkFTjAbm7NGhgntiYXM5Y-YHcrfFH6eCcgl64NirtgcC88adJxf6jtlCIU2d4FZqr/pub?gid=1928473312&single=true&output=csv")
+WA_set<-read.csv(textConnection(myCsv), header = TRUE, stringsAsFactors = FALSE)
+WA_set$Start_date = as.Date(WA_set$Start_date, format = '%d/%m/%Y')
+WA_set$End_date = as.Date(WA_set$End_date, format = '%d/%m/%Y')
+
+
 # load H. punctigera data through google doc
 myCsv <- getURL("https://docs.google.com/spreadsheets/d/16tksOn7SAv4ezJCX_z4no4MpJDtua6pGqVPjfg57OZ8/pub?gid=0&single=true&output=csv")
 d2<-read.csv(textConnection(myCsv), header = FALSE, stringsAsFactors = FALSE)
 # warning('not using internet')
 # d2<-read.csv('Helicoverpa trap data - H. punctigera.csv', header = FALSE, stringsAsFactors = FALSE)
-
 
 d1<-d2[8:nrow(d2),]
 dates<-as.Date(d1$V1,format = '%d/%m/%Y')
@@ -26,7 +32,7 @@ trap<-as.matrix(t(trap1))
 colnames(trap) = trap[1, ] # the first row will be the header
 trap = trap[-1, ]          # removing the first row.
 for (myCol in c("State", "Location","District", "Operator" )){
-trap[is.na(trap[,myCol]),myCol]<-'MISSING_INFORMATION'
+  trap[is.na(trap[,myCol]),myCol]<-'MISSING_INFORMATION'
 }
 
 # create clean data frame
@@ -70,7 +76,7 @@ cleantable$id<-factor(cleantable$id)
 myCsv <- getURL("https://docs.google.com/spreadsheets/d/16tksOn7SAv4ezJCX_z4no4MpJDtua6pGqVPjfg57OZ8/pub?gid=1462632689&single=true&output=csv")
 d2<-read.csv(textConnection(myCsv), header = FALSE, stringsAsFactors = FALSE)
 # d2<-read.csv('Helicoverpa trap data - H. armigera.csv', header = FALSE, stringsAsFactors = FALSE)
-  
+
 d1<-d2[8:nrow(d2),]
 dates<-as.Date(d1$V1,format = '%d/%m/%Y')
 d1<-as.matrix(d1)
