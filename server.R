@@ -71,8 +71,8 @@ shinyServer(function(input, output, session) {
   colorBy <- 'count'
   sizeBy <-  'count'
   myIcon =  makeIcon(
-    iconUrl = "http://cdn1.iconfinder.com/data/icons/aye-ayecons/32/04-mark-512.png",
-    iconWidth = 10, iconHeight = 10)
+    iconUrl = "x-512.png",
+    iconWidth = 20, iconHeight = 20)
   myMoth =  makeIcon(
     iconUrl = "no_moth.png",
     iconWidth = 30, iconHeight = 30)
