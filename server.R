@@ -70,8 +70,8 @@ shinyServer(function(input, output, session) {
   colorBy <- 'count'
   sizeBy <-  'count'
   myIcon =  makeIcon(
-    iconUrl = "http://cdn1.iconfinder.com/data/icons/aye-ayecons/32/04-mark-512.png",
-    iconWidth = 10, iconHeight = 10)
+    iconUrl = "x-512.png",
+    iconWidth = 20, iconHeight = 20)
   myMoth =  makeIcon(
     iconUrl = "no_moth.png",
     iconWidth = 30, iconHeight = 30)
@@ -82,7 +82,7 @@ shinyServer(function(input, output, session) {
     if (nrow(weekdata())==0){
       leafletProxy("map", data = weekdata()) %>%
         clearShapes() %>% clearMarkers() %>%
-        addMarkers(missing$longitude, missing$latitude, popup = 'No data at selected week',icon = myIcon)
+        addMarkers(missing$longitude, missing$latitude, popup = 'No data at selected week',icon = myIcon )
     }else{
       colorData <- weekdata()[[colorBy]]
       zeros=subset( weekdata(), count ==0)
@@ -91,12 +91,17 @@ shinyServer(function(input, output, session) {
       radius <- log(weekdata()[[sizeBy]]+2) / log(max(weekdata()[[sizeBy]])+2) * 30000
       leafletProxy("map", data = weekdata()) %>%
         clearShapes() %>% clearMarkers() %>%
-        addCircles(~longitude, ~latitude, layerId=~id, radius = radius, #radius=6000,
+        addMarkers(missing$longitude, missing$latitude, 
+                   popup = 'No data for selected date range',icon =  myIcon,
+                   options=list(zIndex = 3)) %>%
+        addMarkers(zeros$longitude, zeros$latitude, 
+                   popup = 'No moths in trap',icon =  myMoth,
+                   options=list(zIndex = 2))%>%
+        addCircle(~longitude, ~latitude, layerId=~id, radius = radius, #radius=6000,
                    stroke = TRUE, color = "black", weight = 1,
                    fillOpacity = ifelse(weekdata()[[sizeBy]]==0,0,0.8),
-                   fillColor=pal(colorData)) %>%
-        addMarkers(missing$longitude, missing$latitude, popup = 'No data for selected date range',icon =  myIcon) %>%
-        addMarkers(zeros$longitude, zeros$latitude, popup = 'No moths in trap',icon =  myMoth) %>%
+                   fillColor=pal(colorData),
+                   options=list(zIndex = 10)) %>% # s-index is supposed to modify order
         addLegend("topright", pal=pal, values=colorData, title='Count',
                   layerId="colorLegend",opacity = 1)
       
