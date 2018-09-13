@@ -36,11 +36,11 @@ shinyServer(function(input, output, session) {
     #   }else{
     #     myDates<-input$date
     #   }
-    myMin<-min(as.Date(subct$yearweek))
-    myMax<-max(as.Date(subct$yearweek))+ 7 
-    myMax<- myMax - (as.numeric(myMax)-as.numeric(myMin))%%7 # substract remainder to ensure max is divisible by 7
+    myMin<-min(c(as.Date(subct$yearweek),WA_set$Start_date))
+    myMax<-max(c(as.Date(subct$yearweek),WA_set$End_date)) 
     mySpan<-myMax-myMin
-    sliderInput('date', 'Map showing trap data for date range:',min=myMin, max=myMax, value = c(myMin,myMin+7), width = '100%', step = 7)
+    sliderInput('date', 'Map showing trap data for date range:',min=myMin, max=myMax, 
+                value = c(WA_set$Start_date,WA_set$End_date), width = '100%', step = 1)
     
   })
   
@@ -97,7 +97,7 @@ shinyServer(function(input, output, session) {
         addMarkers(zeros$longitude, zeros$latitude, 
                    popup = 'No moths in trap',icon =  myMoth,
                    options=list(zIndex = 2))%>%
-        addCircle(~longitude, ~latitude, layerId=~id, radius = radius, #radius=6000,
+        addCircles(~longitude, ~latitude, layerId=~id, radius = radius, #radius=6000,
                    stroke = TRUE, color = "black", weight = 1,
                    fillOpacity = ifelse(weekdata()[[sizeBy]]==0,0,0.8),
                    fillColor=pal(colorData),
