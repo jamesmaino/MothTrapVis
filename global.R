@@ -1,5 +1,7 @@
+library(plyr)
 library(dplyr)
 require(RCurl)
+
 
 # load data through dropbox
 # d2<-read.csv(url('https://www.dropbox.com/s/9xf62j35vja2n0h/Budworm%20traps%202015%20with%20GPSgoogle.csv?raw=1'), header = FALSE, stringsAsFactors = FALSE)

@@ -5,6 +5,7 @@ library(scales)
 library(lattice)
 library(ggplot2)
 library(dplyr)
+library(plyr)
 
 # function used for deciding which traps have missing data for given week
 negate_match_df <- function (x, y, on = NULL){
