@@ -1,4 +1,3 @@
-library(plyr)
 library(dplyr)
 require(RCurl)
 

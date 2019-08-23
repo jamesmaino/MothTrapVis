@@ -31,7 +31,7 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
                  top = '10%', draggable = FALSE, left = '5%', right = '5%',
                  bottom = "auto", width = 'auto', height = "auto",
                  fluidRow(
-                   column(1, selectInput( 'myYear','Year', selected = '2017', choices = unique(format(as.Date(cleantable$yearweek),'%Y')))),
+                   column(1, selectInput( 'myYear','Year', selected = '2019', choices = unique(format(as.Date(cleantable$yearweek),'%Y')))),
                    column(2, selectInput("species", "Species", selected = 'punctigera', vars1)),
                    column(2, selectInput("region", "Region for graph", selected = 'hidePlot', c(vars))),
                    column(4),
@@ -79,7 +79,7 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
                           fluidRow(
                             column(12,
                                    selectInput("species2", "Species", selected = 'punctigera', vars1,width = '50%'),
-                                   dateInput("dateMin2", "Start date",as.Date('2017-06-01'),width = '50%'),
+                                   dateInput("dateMin2", "Start date",as.Date('2019-06-01'),width = '50%'),
                                    selectInput("binSize2", "Bin size (weeks)", 1:10, 4,width = '50%'),
                                    selectInput("timeSpan2", "Time span (weeks)",1:52, 24,width = '50%'),
                                    span(textOutput('durationWarning2'),style="color:red",width = '50%'),

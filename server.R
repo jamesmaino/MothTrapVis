@@ -4,7 +4,6 @@ library(RColorBrewer)
 library(scales)
 library(lattice)
 library(ggplot2)
-library(plyr)
 library(dplyr)
 
 # function used for deciding which traps have missing data for given week
@@ -301,6 +300,13 @@ shinyServer(function(input, output, session) {
       colorData <- c(weekdata2()[[colorBy]])
       zeros=subset(weekdata2(), count ==0)
       legMax<-legendMax()
+      if(is.null(input$date2[1])){
+        minDate = "A"
+        maxDate = "B"
+      } else {
+        minDate = format(as.Date(input$date2[1]), format = '%d %b')
+        maxDate = format(as.Date(input$date2[2]),format = '%d %b')
+      }
       palette_rev <- rev(brewer.pal(11, "RdYlGn"))
       pal <- colorNumeric(palette = palette_rev, c(0, colorData, legMax))
       radius <- 6^3/input$map2_zoom^3*log(weekdata2()[[sizeBy]]+2) / log(max(legMax)+2) * 30000
@@ -313,9 +319,8 @@ shinyServer(function(input, output, session) {
                    fillColor=pal(colorData)) %>%
         addMarkers(zeros$longitude, zeros$latitude,icon =  myMoth) %>%
         # need to add extra values to legend or it 
-        addLegend("topright", pal=pal, values=c(0, colorData, legMax), title=paste('Count <br>', 
-                                                                                   format(as.Date(input$date2[1]), format = '%d %b'),'-<br>',
-                                                                                   format(as.Date(input$date2[2]),format = '%d %b')),
+        addLegend("topright", pal=pal, values=c(0, colorData, legMax), 
+                  title=paste('Count <br>', minDate, '-<br>', maxDate),
                   layerId="colorLegend",opacity = 1)
       if(input$showMissing){
         rowsToFind <- weekdata2()[,c('longitude','latitude')]
