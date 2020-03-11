@@ -18,15 +18,34 @@ negate_match_df <- function (x, y, on = NULL){
 
 shinyServer(function(input, output, session) {
   ## Interactive Map ###########################################
-  zipdata<- reactive({
+    zipdata0<- reactive({
     if(input$species=='punctigera'){
-      return(subset(cleantable,
-                    as.numeric(format(as.Date(yearweek), '%Y')) == input$myYear))  
-    }else{
-      return(subset(cleantable1,
-                    as.numeric(format(as.Date(yearweek), '%Y')) == input$myYear))
+      return(punctigera_data)  
+    }
+    if(input$species=='armigera'){
+      return(armigera_data)
+    }
+    if(input$species=='frugiperda'){
+      return(frugiperda_data)
     }
   })
+    zipdata = reactive({
+      zipdata0() %>% filter(as.numeric(format(as.Date(yearweek), '%Y')) == input$myYear)
+      })  
+  # get years of available data
+  speciesyears = reactive({
+    zipdata0() %>% 
+      pull(yearweek) %>%
+      format("%Y") %>%
+      unique %>%
+      as.numeric()
+  })
+  # update year selector with available years
+  observe({
+    updateSelectInput(session, "myYear",
+                      choices = speciesyears(), selected = speciesyears()[1] 
+    )})  
+  
   animationOptions(interval = 1000, loop = FALSE, playButton = 'p')
   output$yearSlider <- renderUI({
     subct <- subset(zipdata(), format(zipdata()$yearweek, '%Y') == input$myYear)
@@ -204,10 +223,14 @@ shinyServer(function(input, output, session) {
   
   ## Animation Map ###########################################
   zipdata2<- reactive({
-    if(input$species=='punctigera'){
-      return(cleantable)  
-    }else{
-      return(cleantable1)
+    if(input$species2=='punctigera'){
+      return(punctigera_data)  
+    }
+    if(input$species2=='armigera'){
+      return(armigera_data)
+    }
+    if(input$species2=='frugiperda'){
+      return(frugiperda_data)
     }
   })
   

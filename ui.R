@@ -14,7 +14,8 @@ vars <- c(
 
 vars1 <- c(
   "H. armigera" = "armigera",
-  "H. punctigera" = "punctigera"
+  "H. punctigera" = "punctigera",
+  "S. frugiperda" = "frugiperda"
 )
 
 shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "MothTrapVis"), id="nav", windowTitle = "MothTrapVis",
@@ -31,8 +32,8 @@ shinyUI(navbarPage(div(img(src="cesar_logo.png", width = 30, height = 30), "Moth
                  top = '10%', draggable = FALSE, left = '5%', right = '5%',
                  bottom = "auto", width = 'auto', height = "auto",
                  fluidRow(
-                   column(1, selectInput( 'myYear','Year', selected = '2019', choices = unique(format(as.Date(cleantable$yearweek),'%Y')))),
-                   column(2, selectInput("species", "Species", selected = 'punctigera', vars1)),
+                   column(1, selectInput( 'myYear','Year', selected = '2020', choices = 2017:2020)),
+                   column(2, selectInput("species", "Species", selected = 'frugiperda', vars1)),
                    column(2, selectInput("region", "Region for graph", selected = 'hidePlot', c(vars))),
                    column(4),
                    column(2,
